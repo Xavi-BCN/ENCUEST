@@ -697,7 +697,7 @@
               const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 segundos de timeout
 
               // Envío de datos usando fetch (AJAX)
-              const response = await fetch('https://script.google.com/macros/s/AKfycbxRovl8eo5XcN0Hj6zmJx_QiVpamMynw27P5YJ33l82QVl27AlDwFGkLAoars89C75m/exec', { // <-- ¡PEGA LA URL DE TU SCRIPT DESPLEGADO AQUÍ!
+              const response = await fetch('https://script.google.com/macros/s/AKfycbxMeHHF7Nvk_wdIivbNlC6oz3n7PT9hQhQewEG-WFacsmatmkYLHV-bpxiU9BdUawPs/exec', { // <-- ¡PEGA LA URL DE TU SCRIPT DESPLEGADO AQUÍ!
                   method: 'POST',
                   body: JSON.stringify(datos), // Envía el objeto 'datos' como una cadena JSON
                   headers: { 'Content-Type': 'application/json' }, // Indica al servidor que el contenido es JSON
