@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario de Calidad - Auditorio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        /* Background gradient for the body using the fuchsia/orange palette */
+        body {
+            background: linear-gradient(to right, #db2777, #f97316); /* Fuchsia to orange gradient */
+            font-family: 'Inter', sans-serif; /* Use Inter font (Tailwind default) */
+            line-height: 1.6;
+            color: #374151; /* Base text color */
+        }
+
+        /* Styles for the main container */
+        .form-container {
+            background-color: #ffffff;
+            border-radius: 1.5rem; /* More rounded corners */
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04); /* More pronounced shadow */
+            padding: 2.5rem; /* More padding */
+            margin-top: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        /* Styles for the rating scale with gradient color pills */
+        .rating input {
+            display: none; /* Hide default radio buttons */
+        }
+        .rating label {
+            display: inline-flex; /* Use flexbox to center content */
+            align-items: center;
+            justify-content: center;
+            width: 40px; /* Larger width for pills */
+            height: 40px; /* Larger height for pills */
+            background-color: #e5e7eb; /* Light gray background color by default */
+            color: #4b5563; /* Dark gray text color by default */
+            border-radius: 9999px; /* Fully rounded borders (pill shape) */
+            cursor: pointer;
+            transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out, transform 0.1s ease-in-out; /* Add transform transition */
+            margin-right: 8px; /* More space between pills */
+            font-size: 1rem; /* Standard font size */
+            font-weight: bold; /* Bold text */
+             user-select: none; /* Prevent text selection */
+             border: 2px solid transparent; /* Transparent border by default */
+        }
+        .rating label:last-child {
+            margin-right: 0; /* Remove right margin from the last pill */
+        }
+
+        /* Specific colors for each pill (1 to 5 gradient) */
+        .rating input[value="1"]:checked + label { background-color: #ef4444; color: white; border-color: #b91c1c; } /* Red */
+        .rating input[value="2"]:checked + label { background-color: #f97316; color: white; border-color: #c2410c; } /* Orange */
+        .rating input[value="3"]:checked + label { background-color: #f59e0b; color: white; border-color: #b45309; } /* Yellow */
+        .rating input[value="4"]:checked + label { background-color: #84cc16; color: white; border-color: #4d7c0f; } /* Lime Green */
+        .rating input[value="5"]:checked + label { background-color: #22c55e; color: white; border-color: #15803d; } /* Green */
+
+
+        /* Hover effects for pills */
+         .rating label:hover {
+            background-color: #d1d5db; /* Slightly darker gray on hover */
+            color: #1f2937; /* Darker text */
+            transform: scale(1.05); /* Slightly larger on hover */
+         }
+          /* Keep the selected color when hovering over an already selected pill */
+          .rating input:checked ~ label:hover {
+             /* Retain the background and text color of the checked state */
+             transform: scale(1.1); /* Maintain the selected size */
+         }
+
+
+         /* Style for each question container */
+         .question-container {
+            margin-bottom: 1.5rem; /* Space between questions */
+            padding-bottom: 1.5rem;
+            border-bottom: 1px solid #e5e7eb; /* Soft separator */
+         }
+         .question-container:last-child {
+             border-bottom: none; /* No border on the last question */
+             padding-bottom: 0;
+             margin-bottom: 0;
+         }
+
+         /* Style for the question header (clickable) */
+         .question-header {
+             display: flex;
+             align-items: center;
+             cursor: pointer;
+             margin-bottom: 1rem; /* Space between header and content */
+             user-select: none; /* Prevent text selection on click */
+         }
+          .question-header .ph {
+              margin-right: 0.75rem; /* Space between icon and text */
+              font-size: 1.5rem; /* Icon size */
+              color: #db2777; /* Fuchsia color for question icons */
+          }
+          .question-header .arrow-icon {
+            display: none;
+          }
+           .question-header.expanded .arrow-icon {
+               transform: rotate(180deg); /* Rotate arrow when expanded */
+           }
+
+
+         /* Style for the collapsible question content */
+         .question-content {
+             max-height: none; /* Hidden by default */
+             overflow: visible;
+             opacity: 1;
+             transition: none; /* Smooth transition */
+         }
+         .question-container.expanded .question-content {
+             max-height: 500px; /* Sufficient height to show content (adjust if needed) */
+             opacity: 1;
+         }
+
+
+         /* Style for observation text areas */
+         textarea {
+             resize: vertical; /* Allow vertical resizing only */
+             min-height: 80px; /* Increased minimum height */
+             padding: 0.75rem; /* More padding */
+             border: 1px solid #d1d5db; /* Visible border */
+             border-radius: 0.375rem; /* Rounded corners */
+             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05); /* Soft inner shadow */
+             transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+             width: 100%; /* Ensure it takes full available width */
+         }
+         textarea:focus {
+             border-color: #db2777; /* Fuchsia border on focus */
+             box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(219, 39, 119, 0.2); /* Fuchsia focus shadow */
+             outline: none; /* Remove default outline */
+         }
+
+         /* Style for the submit button */
+         .submit-button {
+             background-color: #ef4444; /* Red color */
+             color: white;
+             padding: 0.75rem 2rem;
+             font-size: 1.125rem; /* Larger text */
+             font-weight: bold;
+             border-radius: 0.5rem; /* Rounded corners */
+             transition: background-color 0.2s ease-in-out, transform 0.1s ease-in-out;
+             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Button shadow */
+         }
+         .submit-button:hover {
+             background-color: #dc2626; /* Darker red on hover */
+             transform: translateY(-2px); /* Slightly move up on hover */
+             box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15); /* Larger shadow on hover */
+         }
+          .submit-button:active {
+             transform: translateY(0); /* Return to original position on click */
+             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Return original shadow */
+         }
+
+         /* Style for block titles */
+         .block-title {
+             font-size: 1.625rem; /* Larger font size */
+             font-weight: bold;
+             color: #1f2937; /* Dark gray color */
+             margin-bottom: 1.5rem;
+             padding-bottom: 0.5rem;
+             border-bottom: 2px solid #db2777; /* Fuchsia underline */
+             display: flex;
+             align-items: center;
+         }
+         .block-title .ph {
+             margin-right: 0.75rem; /* Space between icon and text */
+             color: #db2777; /* Fuchsia icon color */
+         }
+
+         /* Style for question labels (inside the header) */
+         .question-header .question-label {
+             font-size: 1rem;
+             font-weight: 500; /* Semi-bold */
+             color: #374151; /* Dark gray */
+             margin-bottom: 0; /* Remove bottom margin here */
+             flex-grow: 1; /* Allow label to take available space */
+         }
+
+         /* Style for the optional info block */
+         .info-block {
+             background-color: #fff7ed; /* Very light orange background */
+             border-left: 4px solid #f97316; /* Orange left border */
+             padding: 1.5rem;
+             border-radius: 0.5rem;
+             margin-bottom: 2rem;
+         }
+         .info-block h2 {
+             color: #c2410c; /* Dark orange */
+             margin-bottom: 1rem;
+         }
+          .info-block label {
+              color: #9a3412; /* Darker orange */
+          }
+           .info-block input[type="text"],
+           .info-block input[type="date"] {
+               border-color: #fed7aa; /* Light orange border */
+               padding: 0.5rem; /* Adjust padding */
+           }
+           .info-block input[type="text"]:focus,
+           .info-block input[type="date"]:focus {
+              border-color: #f97316; /* Orange border on focus */
+              box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.05), 0 0 0 3px rgba(249, 115, 22, 0.2); /* Orange focus shadow */
+           }
+
+
+          /* Style for the thank you text */
+          .thank-you-text {
+              color: #6b7280; /* Gray */
+              font-size: 0.875rem;
+              margin-top: 2rem;
+          }
+    </style>
+</head>
+<body class="bg-gray-100 font-sans leading-normal tracking-normal p-4">
+
+    <div class="container mx-auto form-container max-w-3xl">
+
+        <div class="text-center mb-10">
+            <i class="ph ph-microphone-stage text-fuchsia-600 text-6xl mx-auto mb-4"></i>
+            <h1 class="text-4xl font-bold text-gray-800 mb-2">Evaluación de Auditorio</h1>
+            <p class="text-gray-600 text-lg">Cuestionario de Calidad para Organizadores</p>
+            <p class="text-sm text-gray-500 mt-4">Ayúdenos a optimizar su experiencia en este espacio.</p>
+        </div>
+
+        <form action="#" method="post" id="miFormulario">
+
+            <div class="info-block">
+                <h2 class="text-xl font-semibold mb-4">Información del Evento (Opcional)</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label for="nombre_evento" class="block text-sm font-medium mb-1">Nombre del Evento:</label>
+                        <input type="text" id="nombre_evento" name="nombre_evento" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2">
+                    </div>
+                    <div>
+                        <label for="fecha_evento" class="block text-sm font-medium mb-1">Fecha del Evento:</label>
+                        <input type="date" id="fecha_evento" name="fecha_evento" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2">
+                    </div>
+                    <div>
+                        <label for="nombre_organizador" class="block text-sm font-medium mb-1">Su Nombre/Departamento:</label>
+                        <input type="text" id="nombre_organizador" name="nombre_organizador" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2">
+                    </div>
+                    <div>
+                        <label for="tipo_evento" class="block text-sm font-medium mb-1">Auditorio:</label>
+                        <select id="tipo_evento" name="auditorio" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2">
+                          <option value="" disabled selected>Selecciona una opción</option>
+                          <option value="PCCB">PCCB</option>
+                          <option value="PLAZA">PLAZA</option>
+                          <option value="OTROS">OTROS</option>
+                        </select>
+                      </div>
+
+
+
+
+                    <!--  
+                    <div>
+                        <label for="tipo_evento" class="block text-sm font-medium mb-1">Tipo de Evento:</label>
+                        <input type="text" id="tipo_evento" name="tipo_evento" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-orange-500 focus:ring-orange-500 sm:text-sm p-2" placeholder="Ej: Conferencia, Reunión">
+                    </div>
+                    -->
+                </div>
+            </div>
+
+            <div class="mb-10">
+                <h2 class="block-title"><i class="ph ph-buildings"></i>Preparación y Confort del Espacio Pre-Evento</h2>
+                <p class="text-sm text-gray-500 mb-6">Valore del 1 (Muy Insatisfactorio) al 5 (Muy Satisfactorio).</p>
+
+                <div class="question-container">
+                    <div class="question-header">
+                        <i class="ph ph-calendar-check"></i>
+                        <label class="question-label">1.1 Disponibilidad y preparación del espacio: ¿Estaba el auditorio accesible y listo en el momento acordado para su llegada y montaje?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                    </div>
+                    <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q1_1_v1" name="q11_espacio" value="1"><label for="q1_1_v1">1</label>
+                                <input type="radio" id="q1_1_v2" name="q11_espacio" value="2"><label for="q1_1_v2">2</label>
+                                <input type="radio" id="q1_1_v3" name="q11_espacio" value="3"><label for="q1_1_v3">3</label>
+                                <input type="radio" id="q1_1_v4" name="q11_espacio" value="4"><label for="q1_1_v4">4</label>
+                                <input type="radio" id="q1_1_v5" name="q11_espacio" value="5"><label for="q1_1_v5">5</label>
+                            </div>
+                            <!-- 
+                             <div class="flex items-center">
+                                 <input type="checkbox" id="q1_1_na" name="q1_1_na" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-1">
+                                 <label for="q1_1_na" class="text-sm text-gray-700">No aplica</label>
+                             </div>
+                        </div>
+                         <label for="q1_1_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (1.1):</label>
+                        <textarea id="q1_1_obs" name="q1_1_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                        -->
+                    </div>
+                </div>
+
+                <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-broom"></i>
+                        <label class="question-label">1.2 Limpieza general: ¿Encontró el auditorio (sala, escenario, áreas de acceso, butacas) limpio y ordenado al llegar?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q1_2_v1" name="q12_limpieza" value="1"><label for="q1_2_v1">1</label>
+                                <input type="radio" id="q1_2_v2" name="q12_limpieza" value="2"><label for="q1_2_v2">2</label>
+                                <input type="radio" id="q1_2_v3" name="q12_limpieza" value="3"><label for="q1_2_v3">3</label>
+                                <input type="radio" id="q1_2_v4" name="q12_limpieza" value="4"><label for="q1_2_v4">4</label>
+                                <input type="radio" id="q1_2_v5" name="q12_limpieza" value="5"><label for="q1_2_v5">5</label>
+                            </div>
+                            <!-- 
+                        </div>
+                         <label for="q1_2_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (1.2):</label>
+                        <textarea id="q1_2_obs" name="q1_2_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                        -->
+                    </div>
+                </div>
+
+                <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-thermometer"></i>
+                        <label class="question-label">1.3 Temperatura y confort ambiental: ¿Considera que la temperatura y la ventilación eran adecuadas en los momentos previos al evento?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q1_3_v1" name="q13_confort" value="1"><label for="q1_3_v1">1</label>
+                                <input type="radio" id="q1_3_v2" name="q13_confort" value="2"><label for="q1_3_v2">2</label>
+                                <input type="radio" id="q1_3_v3" name="q13_confort" value="3"><label for="q1_3_v3">3</label>
+                                <input type="radio" id="q1_3_v4" name="q13_confort" value="4"><label for="q1_3_v4">4</label>
+                                <input type="radio" id="q1_3_v5" name="q13_confort" value="5"><label for="q1_3_v5">5</label>
+                            </div>
+                            <!--
+                        </div>
+                         <label for="q1_3_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (1.3):</label>
+                        <textarea id="q1_3_obs" name="q1_3_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                        -->
+                    </div>
+                </div>
+
+                 <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-chair"></i>
+                        <label class="question-label">1.4 Estado del mobiliario: ¿Las butacas y cualquier otro mobiliario dispuesto (mesas, atriles) estaban en buen estado y limpios?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q1_4_v1" name="q14_mobiliario" value="1"><label for="q1_4_v1">1</label>
+                                <input type="radio" id="q1_4_v2" name="q14_mobiliario" value="2"><label for="q1_4_v2">2</label>
+                                <input type="radio" id="q1_4_v3" name="q14_mobiliario" value="3"><label for="q1_4_v3">3</label>
+                                <input type="radio" id="q1_4_v4" name="q14_mobiliario" value="4"><label for="q1_4_v4">4</label>
+                                <input type="radio" id="q1_4_v5" name="q14_mobiliario" value="5"><label for="q1_4_v5">5</label>
+                            </div>
+                            <!--
+                              <div class="flex items-center">
+                                 <input type="checkbox" id="q1_4_na" name="q1_4_na" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-1">
+                                 <label for="q1_4_na" class="text-sm text-gray-700">No aplica</label>
+                             </div>
+                        </div>
+                         <label for="q1_4_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (1.4):</label>
+                        <textarea id="q1_4_obs" name="q1_4_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                        -->
+                    </div>
+                </div>
+
+                <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-lightbulb"></i>
+                        <label class="question-label">1.5 Iluminación general: ¿La iluminación de sala antes de comenzar era suficiente y adecuada para las tareas de preparación?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q1_5_v1" name="q15_pre-iluminacion" value="1"><label for="q1_5_v1">1</label>
+                                <input type="radio" id="q1_5_v2" name="q15_pre-iluminacion" value="2"><label for="q1_5_v2">2</label>
+                                <input type="radio" id="q1_5_v3" name="q15_pre-iluminacion" value="3"><label for="q1_5_v3">3</label>
+                                <input type="radio" id="q1_5_v4" name="q15_pre-iluminacion" value="4"><label for="q1_5_v4">4</label>
+                                <input type="radio" id="q1_5_v5" name="q15_pre-iluminacion" value="5"><label for="q1_5_v5">5</label>
+                            </div>
+                        </div>
+                        <!--
+                         <label for="q1_5_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (1.5):</label>
+                        <textarea id="q1_5_obs" name="q1_5_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                        -->
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mb-10">
+                <h2 class="block-title"><i class="ph ph-speaker-high"></i>Soporte Técnico y Audiovisual Durante el Evento</h2>
+                 <p class="text-sm text-gray-500 mb-6">Valore del 1 (Muy Insatisfactorio) al 5 (Muy Satisfactorio).</p>
+
+                <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-microphone"></i>
+                        <label class="question-label">2.1 Calidad del sonido (ponentes): ¿El sonido de los micrófonos de los ponentes fue claro y bien ajustado (incluyendo monitores si se usaron)?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q2_1_v1" name="q21_microfonia" value="1"><label for="q2_1_v1">1</label>
+                                <input type="radio" id="q2_1_v2" name="q21_microfonia" value="2"><label for="q2_1_v2">2</label>
+                                <input type="radio" id="q2_1_v3" name="q21_microfonia" value="3"><label for="q2_1_v3">3</label>
+                                <input type="radio" id="q2_1_v4" name="q21_microfonia" value="4"><label for="q2_1_v4">4</label>
+                                <input type="radio" id="q2_1_v5" name="q21_microfonia" value="5"><label for="q2_1_v5">5</label>
+                            </div>
+                            <!--
+                              <div class="flex items-center">
+                                 <input type="checkbox" id="q2_1_na" name="q2_1_na" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-1">
+                                 <label for="q2_1_na" class="text-sm text-gray-700">No aplica</label>
+                             </div>
+                        </div>
+                         <label for="q2_1_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (2.1):</label>
+                        <textarea id="q2_1_obs" name="q2_1_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                        -->
+                    </div>
+                </div>
+
+                 <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-speaker-low"></i>
+                        <label class="question-label">2.2 Calidad del sonido (audiencia): ¿La calidad del sonido general (audio de vídeos, música, ponentes) percibida por la audiencia fue buena?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q2_2_v1" name="q22_audio" value="1"><label for="q2_2_v1">1</label>
+                                <input type="radio" id="q2_2_v2" name="q22_audio" value="2"><label for="q2_2_v2">2</label>
+                                <input type="radio" id="q2_2_v3" name="q22_audio" value="3"><label for="q2_2_v3">3</label>
+                                <input type="radio" id="q2_2_v4" name="q22_audio" value="4"><label for="q2_2_v4">4</label>
+                                <input type="radio" id="q2_2_v5" name="q22_audio" value="5"><label for="q2_2_v5">5</label>
+                            </div>
+                            <!--
+                              <div class="flex items-center">
+                                 <input type="checkbox" id="q2_2_na" name="q2_2_na" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-1">
+                                 <label for="q2_2_na" class="text-sm text-gray-700">No aplica</label>
+                             </div>
+                        </div>
+                         <label for="q2_2_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (2.2):</label>
+                        <textarea id="q2_2_obs" name="q2_2_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                        -->
+                    </div>
+                </div>
+
+                 <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-spotlight"></i>
+                        <label class="question-label">2.3 Iluminación durante el evento: ¿La iluminación de escena o general durante el desarrollo del evento fue la adecuada y se manejó correctamente?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q2_3_v1" name="q23_iluminacion" value="1"><label for="q2_3_v1">1</label>
+                                <input type="radio" id="q2_3_v2" name="q23_iluminacion" value="2"><label for="q2_3_v2">2</label>
+                                <input type="radio" id="q2_3_v3" name="q23_iluminacion" value="3"><label for="q2_3_v3">3</label>
+                                <input type="radio" id="q2_3_v4" name="q23_iluminacion" value="4"><label for="q2_3_v4">4</label>
+                                <input type="radio" id="q2_3_v5" name="q23_iluminacion" value="5"><label for="q2_3_v5">5</label>
+                            </div>
+                            <!--
+                          <div class="flex items-center">
+                             <input type="checkbox" id="q2_3_na" name="q2_3_na" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-1">
+                             <label for="q2_3_na" class="text-sm text-gray-700">No aplica</label>
+                         </div>
+                    </div>
+                     <label for="q2_3_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (2.3):</label>
+                    <textarea id="q2_3_obs" name="q2_3_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                     -->
+                    </div>
+                </div>
+
+                 <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-projector-screen"></i>
+                        <label class="question-label">2.4 Proyecciones y visuales: ¿El funcionamiento de proyectores, pantallas y la visualización de presentaciones o vídeos fue fluido y sin problemas técnicos mayores?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q2_4_v1" name="q24_proyeccion" value="1"><label for="q2_4_v1">1</label>
+                                <input type="radio" id="q2_4_v2" name="q24_proyeccion" value="2"><label for="q2_4_v2">2</label>
+                                <input type="radio" id="q2_4_v3" name="q24_proyeccion" value="3"><label for="q2_4_v3">3</label>
+                                <input type="radio" id="q2_4_v4" name="q24_proyeccion" value="4"><label for="q2_4_v4">4</label>
+                                <input type="radio" id="q2_4_v5" name="q24_proyeccion" value="5"><label for="q2_4_v5">5</label>
+                            </div>
+                            <!--
+                          <div class="flex items-center">
+                             <input type="checkbox" id="q2_4_na" name="q2_4_na" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-1">
+                             <label for="q2_4_na" class="text-sm text-gray-700">No aplica</label>
+                         </div>
+                    </div>
+                     <label for="q2_4_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (2.4):</label>
+                    <textarea id="q2_4_obs" name="q2_4_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                    -->
+                    </div>
+                </div>
+
+                 <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-globe"></i>
+                        <label class="question-label">2.5 Funcionalidad de eventos híbridos/remotos (si aplica): Si su evento incluyó conexión remota (Zoom, Teams, streaming, etc.), ¿la estabilidad de la conexión y la calidad de la comunicación bidireccional fue satisfactoria?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q2_5_v1" name="q25_streaming" value="1"><label for="q2_5_v1">1</label>
+                                <input type="radio" id="q2_5_v2" name="q25_streaming" value="2"><label for="q2_5_v2">2</label>
+                                <input type="radio" id="q2_5_v3" name="q25_streaming" value="3"><label for="q2_5_v3">3</label>
+                                <input type="radio" id="q2_5_v4" name="q25_streaming" value="4"><label for="q2_5_v4">4</label>
+                                <input type="radio" id="q2_5_v5" name="q25_streaming" value="5"><label for="q2_5_v5">5</label>
+                            </div>
+                            <!--
+                          <div class="flex items-center">
+                             <input type="checkbox" id="q2_5_na" name="q2_5_na" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-1">
+                             <label for="q2_5_na" class="text-sm text-gray-700">No aplica</label>
+                         </div>
+                    </div>
+                     <label for="q2_5_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (2.5):</label>
+                    <textarea id="q2_5_obs" name="q2_5_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                    -->
+                    </div>
+                </div>
+
+                 <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-headset"></i>
+                        <label class="question-label">2.6 Respuesta del equipo técnico: ¿El equipo técnico (si estuvo presente o disponible) respondió de manera rápida y eficaz ante cualquier necesidad o incidencia surgida?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q2_6_v1" name="q26_tecnico_eficaz" value="1"><label for="q2_6_v1">1</label>
+                                <input type="radio" id="q2_6_v2" name="q26_tecnico_eficaz" value="2"><label for="q2_6_v2">2</label>
+                                <input type="radio" id="q2_6_v3" name="q26_tecnico_eficaz" value="3"><label for="q2_6_v3">3</label>
+                                <input type="radio" id="q2_6_v4" name="q26_tecnico_eficaz" value="4"><label for="q2_6_v4">4</label>
+                                <input type="radio" id="q2_6_v5" name="q26_tecnico_eficaz" value="5"><label for="q2_6_v5">5</label>
+                            </div>
+                            <!--
+                          <div class="flex items-center">
+                             <input type="checkbox" id="q2_6_na" name="q2_6_na" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-1">
+                             <label for="q2_6_na" class="text-sm text-gray-700">No aplica</label>
+                         </div>
+                    </div>
+                     <label for="q2_6_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (2.6):</label>
+                    <textarea id="q2_6_obs" name="q2_6_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                    -->
+                    </div>
+                </div>
+
+                 <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-user-check"></i>
+                        <label class="question-label">2.7 Profesionalidad del equipo técnico: ¿Considera que el equipo técnico mostró profesionalidad, conocimiento y una actitud de servicio adecuada?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q2_7_v1" name="q27_tecnico_pro" value="1"><label for="q2_7_v1">1</label>
+                                <input type="radio" id="q2_7_v2" name="q27_tecnico_pro" value="2"><label for="q2_7_v2">2</label>
+                                <input type="radio" id="q2_7_v3" name="q27_tecnico_pro" value="3"><label for="q2_7_v3">3</label>
+                                <input type="radio" id="q2_7_v4" name="q27_tecnico_pro" value="4"><label for="q2_7_v4">4</label>
+                                <input type="radio" id="q2_7_v5" name="q27_tecnico_pro" value="5"><label for="q2_7_v5">5</label>
+                            </div>
+                            <!--
+                          <div class="flex items-center">
+                             <input type="checkbox" id="q2_7_na" name="q2_7_na" class="h-4 w-4 text-blue-600 border-gray-300 rounded mr-1">
+                             <label for="q2_7_na" class="text-sm text-gray-700">No aplica</label>
+                         </div>
+                    </div>
+                     <label for="q2_7_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (2.7):</label>
+                    <textarea id="q2_7_obs" name="q2_7_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                    -->
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="mb-10">
+                <h2 class="block-title"><i class="ph ph-chart-line-up"></i>Optimización de la Experiencia y Mejoras Continuas</h2>
+                 <p class="text-sm text-gray-500 mb-6">Valore del 1 (Muy Insatisfactorio) al 5 (Muy Satisfactorio) o use el campo de texto libre.</p>
+
+                <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-smiley"></i>
+                        <label class="question-label">3.1 Satisfacción general con la experiencia en el auditorio: Considerando todos los aspectos, ¿cómo valora su experiencia global como organizador del evento en nuestras instalaciones en esta ocasión?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q3_1_v1" name="q31_satisfaccion" value="1"><label for="q3_1_v1">1</label>
+                                <input type="radio" id="q3_1_v2" name="q31_satisfaccion" value="2"><label for="q3_1_v2">2</label>
+                                <input type="radio" id="q3_1_v3" name="q31_satisfaccion" value="3"><label for="q3_1_v3">3</label>
+                                <input type="radio" id="q3_1_v4" name="q31_satisfaccion" value="4"><label for="q3_1_v4">4</label>
+                                <input type="radio" id="q3_1_v5" name="q31_satisfaccion" value="5"><label for="q3_1_v5">5</label>
+                            </div>
+                            <!--
+                        </div>
+                         <label for="q3_1_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (3.1):</label>
+                        <textarea id="q3_1_obs" name="q3_1_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                        -->
+                    </div>
+                </div>
+
+                 <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-flow-arrow"></i>
+                        <label class="question-label">3.2 Flujo de trabajo: ¿Hubo algún aspecto del espacio o del soporte técnico que dificultara o ralentizara su flujo de trabajo habitual como organizador?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                         <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q3_2_v1" name="q32_flujo" value="1"><label for="q3_2_v1">1</label>
+                                <input type="radio" id="q3_2_v2" name="q32_flujo" value="2"><label for="q3_2_v2">2</label>
+                                <input type="radio" id="q3_2_v3" name="q32_flujo" value="3"><label for="q3_2_v3">3</label>
+                                <input type="radio" id="q3_2_v4" name="q32_flujo" value="4"><label for="q3_2_v4">4</label>
+                                <input type="radio" id="q3_2_v5" name="q32_flujo" value="5"><label for="q3_2_v5">5</label>
+                            </div>
+                            <!--
+                        </div>
+                    <label for="q3_2_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (3.2):</label>
+                    <textarea id="q3_2_obs" name="q3_2_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                    -->
+                    </div>
+                </div>
+
+                <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-puzzle-piece"></i>
+                        <label class="question-label">3.3 Adaptabilidad del espacio/equipo: ¿Considera que el auditorio y su equipo técnico se adaptaron bien a las necesidades específicas de *este* evento en particular?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                        <div class="flex items-center mb-3">
+                             <div class="rating flex mr-6">
+                                <input type="radio" id="q3_3_v1" name="q33_adaptable" value="1"><label for="q3_3_v1">1</label>
+                                <input type="radio" id="q3_3_v2" name="q33_adaptable" value="2"><label for="q3_3_v2">2</label>
+                                <input type="radio" id="q3_3_v3" name="q33_adaptable" value="3"><label for="q3_3_v3">3</label>
+                                <input type="radio" id="q3_3_v4" name="q33_adaptable" value="4"><label for="q3_3_v4">4</label>
+                                <input type="radio" id="q3_3_v5" name="q33_adaptable" value="5"><label for="q3_3_v5">5</label>
+                            </div>
+                            <!--
+                        </div>
+                     <label for="q3_3_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (3.3):</label>
+                    <textarea id="q3_3_obs" name="q3_3_obs" rows="2" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                    -->
+                    </div>
+                </div>
+
+                 <div class="question-container">
+                     <div class="question-header">
+                         <i class="ph ph-chat-centered-text"></i>
+                        <label class="question-label">3.4 Sugerencias concretas para optimizar su uso futuro: Pensando en sus próximos eventos aquí, ¿qué cambio o mejora específica (grande o pequeña) le ayudaría más a usted como organizador?</label>
+                         <i class="ph ph-caret-down arrow-icon text-gray-500"></i>
+                     </div>
+                     <div class="question-content">
+                         <div class="flex items-center mb-3">
+                             <span class="text-sm text-gray-500">Respuesta libre</span>
+                        </div>
+                    <label for="q3_4_obs" class="block text-sm font-medium text-gray-700 mb-1">Observaciones (3.4):</label>
+                    <textarea id="q3_4_obs" name="q34_Sugerencias" rows="3" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-fuchsia-600 focus:ring-fuchsia-600 sm:text-sm"></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="text-center mt-10">
+                <button type="submit" class="inline-flex justify-center items-center submit-button">
+                     <i class="ph ph-paper-plane-tilt mr-2 text-xl"></i>
+                    Enviar Cuestionario
+                </button>
+            </div>
+
+            <div id="mensaje" class="text-center mt-4" style="display: none;">
+            </div>
+
+        </form>
+
+        <div class="text-center thank-you-text">
+            <p>¡Gracias por su tiempo y valioso feedback!</p>
+        </div>
+
+
+
+    </div>
+
+    <script>
+        /*
+        // JavaScript to make questions collapsible
+        document.addEventListener('DOMContentLoaded', () => {
+            const questionHeaders = document.querySelectorAll('.question-header');
+
+            questionHeaders.forEach(header => {
+                header.addEventListener('click', () => {
+                    const questionContainer = header.closest('.question-container');
+                    // Toggle the 'expanded' class on the parent container
+                    questionContainer.classList.toggle('expanded');
+                });
+            });
+        });
+        */
+    // Para enviar formulario//
+
+       
+    document.getElementById("miFormulario").addEventListener("submit", function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const data = new FormData(form);
+    const obj = Object.fromEntries(data.entries());
+
+    fetch("https://script.google.com/macros/s/AKfycbx0wO89r7auD_gJ_46ALuXMv_ZX19ZqBRQKqqfLECTmEn0rkuIjzQNTyRhrhy90UhL2/exec", { // reemplaza con la URL que copiaste del Apps Script
+        method: "POST",
+        body: new URLSearchParams(obj),
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+    })
+    .then(res => res.text())
+    .then(response => {
+        document.getElementById("mensaje").innerHTML = "✅ Formulario enviado con éxito.";
+        document.getElementById("mensaje").style.display = "block";
+        form.reset();
+    })
+    .catch(err => {
+        document.getElementById("mensaje").innerHTML = "❌ Error al enviar el formulario.";
+        document.getElementById("mensaje").style.display = "block";
+        console.error(err);
+    });
+});
+
+    </script>
+
+</body>
+</html>
