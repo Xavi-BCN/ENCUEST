@@ -725,6 +725,7 @@
 
     fetch("https://script.google.com/macros/s/AKfycby8_F636dOvKe7jSrx-HGVgAhF5CI4Yv18iIw7_C3skMyopaDvdrURhk0tsw2qtnoU/exec", { // reemplaza con la URL que copiaste del Apps Script
         method: "POST",
+        mode: "no-cors",
         body: new URLSearchParams(obj),
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
